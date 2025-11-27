@@ -19,6 +19,20 @@ A  Blazor Server web application built with .NET 9 that allows users to search f
 - Manage configuration and API keys securely
 - Handle errors and loading states gracefully
 ---
+
+## Getting Started
+
+### 1. Clone the Repository
+
+First, clone this repository to your local machine:
+
+```bash
+git clone https://github.com/samsur/MovieApp.git
+cd MovieApp
+```
+
+### 2. Get Your API Key
+
 ## Important: Get Your API Key First
 
 Before running the application, you **MUST** get an OMDb API key:
@@ -29,7 +43,7 @@ Before running the application, you **MUST** get an OMDb API key:
 4. Check your email and click the activation link
 5. Copy your API key
 
-## Configuration
+### 3. Configure Your API Key
 
 Open `appsettings.json` and replace `your-api-key-here` with your actual API key:
 
@@ -42,7 +56,7 @@ Open `appsettings.json` and replace `your-api-key-here` with your actual API key
 }
 ```
 
-## Run the Application
+### 4. Run the Application
 
 ```bash
 dotnet watch run
