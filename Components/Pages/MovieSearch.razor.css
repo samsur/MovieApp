@@ -1,0 +1,28 @@
+.movie-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.movie-card:hover {
+    transform: translateY(-3px);
+}
+
+.movie-card img {
+    height: 300px;
+    object-fit: cover;
+}
+
+.no-poster {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    font-size: 3rem;
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+

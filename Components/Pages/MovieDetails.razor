@@ -1,0 +1,196 @@
+@page "/movie/{ImdbId}"
+@rendermode InteractiveServer
+@using MovieApp.Models
+@using MovieApp.Services
+@inject IMovieService MovieService
+@inject NavigationManager Navigation
+<PageTitle>Movie Details</PageTitle>
+<div class="container mt-4">
+    <h2>Movie Details</h2>
+</div>
+@code{
+
+}
+<PageTitle>@(movieDetail?.Title ?? "Movie Details")</PageTitle>
+
+<div class="container mt-4">
+    <!-- Back Button -->
+    <button class="btn btn-secondary mb-3" @onclick="GoBack">
+        ← Back to Search
+    </button>
+
+    <!-- Loading Indicator -->
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading movie details...</p>
+        </div>
+    }
+
+    <!-- Error Message -->
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <h4>Error Loading Movie</h4>
+            <p>@errorMessage</p>
+        </div>
+    }
+
+    <!-- Movie Details -->
+    @if (movieDetail != null && !isLoading)
+    {
+        <div class="row">
+            <!-- Movie Poster -->
+            <div class="col-md-4 mb-4">
+                @if (!string.IsNullOrEmpty(movieDetail.Poster) && movieDetail.Poster != "N/A")
+                {
+                    <img src="@movieDetail.Poster" class="img-fluid" alt="@movieDetail.Title">
+                }
+                else
+                {
+                    <div class="no-poster">
+                        <span>🎬</span>
+                    </div>
+                }
+
+                <!-- Ratings -->
+                @if (!string.IsNullOrEmpty(movieDetail.ImdbRating) && movieDetail.ImdbRating != "N/A")
+                {
+                    <div class="card mt-3">
+                        <div class="card-body text-center">
+                            <h6>IMDb Rating</h6>
+                            <h3>⭐ @movieDetail.ImdbRating/10</h3>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Movie Information -->
+            <div class="col-md-8">
+                <h1>@movieDetail.Title</h1>
+                
+                <!-- Badges -->
+                <div class="mb-3">
+                    @if (!string.IsNullOrEmpty(movieDetail.Year) && movieDetail.Year != "N/A")
+                    {
+                        <span class="badge bg-primary">@movieDetail.Year</span>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Rated) && movieDetail.Rated != "N/A")
+                    {
+                        <span class="badge bg-secondary">@movieDetail.Rated</span>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Runtime) && movieDetail.Runtime != "N/A")
+                    {
+                        <span class="badge bg-info">@movieDetail.Runtime</span>
+                    }
+                </div>
+
+                <!-- Plot -->
+                @if (!string.IsNullOrEmpty(movieDetail.Plot) && movieDetail.Plot != "N/A")
+                {
+                    <p class="lead">@movieDetail.Plot</p>
+                }
+
+                <!-- Details -->
+                <div class="mt-4">
+                    @if (!string.IsNullOrEmpty(movieDetail.Genre) && movieDetail.Genre != "N/A")
+                    {
+                        <p><strong>Genre:</strong> @movieDetail.Genre</p>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Director) && movieDetail.Director != "N/A")
+                    {
+                        <p><strong>Director:</strong> @movieDetail.Director</p>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Actors) && movieDetail.Actors != "N/A")
+                    {
+                        <p><strong>Actors:</strong> @movieDetail.Actors</p>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Released) && movieDetail.Released != "N/A")
+                    {
+                        <p><strong>Released:</strong> @movieDetail.Released</p>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Language) && movieDetail.Language != "N/A")
+                    {
+                        <p><strong>Language:</strong> @movieDetail.Language</p>
+                    }
+                    @if (!string.IsNullOrEmpty(movieDetail.Awards) && movieDetail.Awards != "N/A")
+                    {
+                        <p><strong>Awards:</strong> @movieDetail.Awards</p>
+                    }
+                </div>
+
+                <!-- IMDb Link -->
+                <a href="https://www.imdb.com/title/@movieDetail.ImdbID" 
+                   target="_blank" 
+                   class="btn btn-primary mt-3">
+                    View on IMDb
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    // Route parameter for IMDb ID
+    [Parameter]
+    public string ImdbId { get; set; } = string.Empty;
+
+    // Component state
+    private MovieDetail? movieDetail = null;
+    private bool isLoading = false;
+    private string? errorMessage = null;
+
+   
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMovieDetails();
+    }
+
+ 
+
+    /// <summary>
+    /// Loads movie details from the API
+    /// </summary>
+    private async Task LoadMovieDetails()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            if (string.IsNullOrWhiteSpace(ImdbId))
+            {
+                errorMessage = "Invalid movie ID.";
+                return;
+            }
+
+            // Fetch movie details from the service
+            movieDetail = await MovieService.GetMovieDetailsAsync(ImdbId);
+
+            if (movieDetail == null)
+            {
+                errorMessage = "Movie not found. The requested movie could not be retrieved.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Navigates back to the search page
+    /// </summary>
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/search");
+    }
+}
+

@@ -1,0 +1,151 @@
+@page "/search"
+@rendermode InteractiveServer
+@using MovieApp.Models
+@using MovieApp.Services
+@inject IMovieService MovieService
+@inject NavigationManager Navigation
+
+<PageTitle>Search Movies</PageTitle>
+
+<div class="container mt-4">
+    <h2>Search Movies</h2>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-9">
+                    <input type="text" class="form-control" placeholder="Enter movie title..." @bind="searchTerm"/>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" 
+                            @onclick="SearchMovies"
+                            disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span>Searching...</span>
+                        }
+                        else
+                        {
+                            <span>Search</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Searching for movies...</p>
+        </div>
+    }
+
+    <!-- Error Message -->
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <strong>Error:</strong> @errorMessage
+            <button type="button" class="btn-close" @onclick="ClearError"></button>
+        </div>
+    }
+
+    <!-- No Results Message -->
+    @if (hasSearched && !isLoading && movies.Count == 0 && string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-info">
+            No movies found matching "@lastSearchTerm". Try a different search term.
+        </div>
+    }
+
+    <!-- Search Results -->
+    @if (movies.Count > 0 && !isLoading)
+    {
+        <h4 class="mb-3">Found @movies.Count result@(movies.Count != 1 ? "s" : "")</h4>
+
+        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-3">
+            @foreach (var movie in movies)
+            {
+                <div class="col">
+                    <div class="card h-100 movie-card" @onclick="() => NavigateToDetails(movie.ImdbID)">
+                        @if (!string.IsNullOrEmpty(movie.Poster) && movie.Poster != "N/A")
+                        {
+                            <img src="@movie.Poster" class="card-img-top" alt="@movie.Title">
+                        }
+                        else
+                        {
+                            <div class="no-poster">
+                                <span>🎬</span>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h6 class="card-title">@movie.Title</h6>
+                            <p class="card-text">
+                                <small>Year: @movie.Year</small><br />
+                                <small>Type: @movie.Type</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    // Component state
+    private string searchTerm = string.Empty;
+    private string lastSearchTerm = string.Empty;
+    private List<Movie> movies = new List<Movie>();
+    private bool isLoading = false;
+    private bool hasSearched = false;
+    private string? errorMessage = null;
+
+ 
+    private async Task SearchMovies()
+    {
+        // Validate search term
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            errorMessage = "Please enter a movie title to search.";
+            return;
+        }
+
+        try
+        {
+            // Reset state
+            isLoading = true;
+            errorMessage = null;
+            movies.Clear();
+            lastSearchTerm = searchTerm;
+            hasSearched = true;
+
+            // Call the movie service to search for movies
+            movies = await MovieService.SearchMoviesAsync(searchTerm);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToDetails(string imdbId)
+    {
+        Navigation.NavigateTo($"/movie/{imdbId}");
+    }
+    private void ClearError()
+    {
+        errorMessage = null;
+    }
+
+}
+
